@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class homepage extends StatefulWidget {
-  final String email;
+  // final String email;
 
-  const homepage({super.key, required this.email});
+  const homepage({super.key, });
 
   @override
   State<homepage> createState() => _homepageState();
@@ -22,11 +22,7 @@ class _homepageState extends State<homepage> {
 
   }
   @override
-  void initState() {
-    // TODO: implement initState
-    super.initState();
-    getCachedEmail();
-  }
+
   Widget build(BuildContext context) {
     return Scaffold(
 

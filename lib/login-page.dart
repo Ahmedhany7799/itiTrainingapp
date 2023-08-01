@@ -1,5 +1,6 @@
 import 'package:app01iti/Homepage.dart';
 import 'package:app01iti/Register.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -12,8 +13,8 @@ class loginPage extends StatefulWidget {
 
 class _loginPageState extends State<loginPage> {
   final _formfield = GlobalKey<FormState>();
-  final emailController = TextEditingController();
-  final passwordController = TextEditingController();
+  TextEditingController emailController = TextEditingController();
+  TextEditingController passwordController = TextEditingController();
   bool passToggle = true;
 
   @override
@@ -107,27 +108,35 @@ class _loginPageState extends State<loginPage> {
                     onTap: () async {
                       if (_formfield.currentState!.validate()) {
 
+                        bool result = firebaseLogin(
+                                emailController.text, passwordController.text) as bool
+                            ;
+                        if (result) {
+                          final SharedPreferences prefs =
+                          await SharedPreferences.getInstance();
 
-                        final SharedPreferences prefs = await SharedPreferences.getInstance();
-
-// Save an integer value to 'counter' key.
-                        await prefs.setString('email',emailController.text,);
-
-
-
+                          await prefs.setString(
+                            'email',
+                            emailController.text,
+                          );
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) =>  homepage(email: '',)),
+                            MaterialPageRoute(
+                                builder: (context) => homepage(
+                                    // email: "",
+                                    )),
                           );
-
-
+                        } else {
+                          (ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text("Login Failed")),
+                          ));
+                        }
                       }
-
                     },
                     child: Container(
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
-                       color: Color.fromRGBO(3, 96, 164,1),
+                        color: Color.fromRGBO(3, 96, 164, 1),
                         borderRadius: BorderRadius.circular(12.0),
                       ),
                       height: 50,
@@ -135,7 +144,6 @@ class _loginPageState extends State<loginPage> {
                       child: Text(
                         "Sign in",
                         style: TextStyle(
-
                           fontSize: 25,
                           color: Colors.white70,
                         ),
@@ -176,7 +184,7 @@ class _loginPageState extends State<loginPage> {
                   Container(
                     height: 50,
                     decoration: BoxDecoration(
-                      color: Color.fromRGBO(3, 96, 164,1),
+                      color: Color.fromRGBO(3, 96, 164, 1),
                       borderRadius: BorderRadius.circular(12.0),
                     ),
                     width: double.infinity,
@@ -184,7 +192,8 @@ class _loginPageState extends State<loginPage> {
                         onPressed: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) =>  Registerpage()),
+                            MaterialPageRoute(
+                                builder: (context) => Registerpage()),
                           );
                         },
                         child: Text(
@@ -206,5 +215,24 @@ class _loginPageState extends State<loginPage> {
         ),
       ),
     );
+  }
+
+  Future <bool> firebaseLogin(String email, String password) async {
+    try {
+      final credential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      if (credential.user == null) {
+        return true;
+      }
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'user-not-found') {
+        print('No user found for that email.');
+      } else if (e.code == 'wrong-password') {
+        print('Wrong password provided for that user.');
+      }
+    }
+    return false;
   }
 }
